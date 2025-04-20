@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class UserService {
@@ -47,6 +48,13 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setName(request.name());
         user.setEmail(request.email());
+
+        if (Objects.equals(request.role(), "STUDENT") || Objects.equals(request.role(), "TEACHER")){
+            user.setRole(request.role());
+        }
+        else {
+            return ResponseEntity.badRequest().body("Invalid user role");
+        }
         userRepository.save(user);
 
         return ResponseEntity.ok(Map.of("message", "User registered"));

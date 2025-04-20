@@ -18,5 +18,5 @@ public class User {
     private String name;
     @Indexed(unique = true)
     private String email;
-    private String role = "USER";
+    private String role;
 }

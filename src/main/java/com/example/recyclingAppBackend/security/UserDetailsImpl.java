@@ -22,12 +22,22 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     public static UserDetailsImpl build(User user) {
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole()));
+        // take the raw role (e.g. "ADMIN") and prefix it:
+        String raw = user.getRole();                   // "ADMIN"
+        String granted = raw.startsWith("ROLE_")
+                ? raw
+                : "ROLE_" + raw;              // "ROLE_ADMIN"
+
+        List<GrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority(granted)
+        );
+
         return new UserDetailsImpl(
                 user.getId(),
                 user.getUsername(),
                 user.getPassword(),
-                authorities);
+                authorities
+        );
     }
 
     @Override public Collection<? extends GrantedAuthority> getAuthorities() { return authorities; }
