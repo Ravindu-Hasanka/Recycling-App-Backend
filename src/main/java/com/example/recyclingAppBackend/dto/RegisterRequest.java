@@ -7,5 +7,6 @@ public record RegisterRequest(
         @NotBlank @Size(min = 6, max = 40) String password,
         @NotBlank String name,
         @NotBlank @Email String email,
-        @NotBlank String role
+        @NotBlank String role,
+        String parentId
 ) {}

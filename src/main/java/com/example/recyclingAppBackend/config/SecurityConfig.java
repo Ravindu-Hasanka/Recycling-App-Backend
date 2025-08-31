@@ -5,6 +5,7 @@ import com.example.recyclingAppBackend.security.UserDetailsServiceImpl;
 import com.example.recyclingAppBackend.security.jwt.JwtUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,12 +34,28 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/categories/view").authenticated()
-                        .requestMatchers("/api/categories/**").hasRole("ADMIN")
-                        .requestMatchers("/api/materials/**").hasRole("TEACHER")
-                        .requestMatchers("/api/paths/**").authenticated()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/stories/**", "/api/badges/**", "/api/items/**").permitAll()
+                        .requestMatchers("/api/categories/view").permitAll() // Changed to permitAll to match design
+
+                        // --- Role-Specific Endpoints ---
+                        // Student-specific progress tracking
+                        .requestMatchers("/api/progress/**").hasRole("STUDENT")
+
+                        // Admin endpoints for content management
+                        .requestMatchers("/api/categories/**", "/api/stories/**", "/api/badges/**", "/api/items/**").hasRole("ADMIN")
+
+                        // Teacher-specific endpoints
+                        .requestMatchers("/api/materials/**").hasRole("TEACHER")
+
+                        // --- General Authenticated Endpoints ---
+                        .requestMatchers("/api/paths/**").authenticated()
+
+                        // Profile endpoints for any logged-in user
+                        .requestMatchers("/api/profile/**").authenticated()
+
+                        // Fallback for any other request
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
