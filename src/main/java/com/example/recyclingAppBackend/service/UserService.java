@@ -16,9 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -68,12 +67,63 @@ public class UserService {
             }
             user.setParentId(request.parentId());
             user.setActive(false);
+
+            parent.getChildrenIds().add(user.getId());
+            userRepository.save(parent);
         } else {
             user.setActive(true);
         }
 
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "User registered successfully. Student accounts require parent approval."));
+    }
+
+    public ResponseEntity<?> addChild(RegisterRequest request, String parentId) {
+        User parent = findUserById(parentId);
+        if (!parent.getRole().equals("PARENT")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Only parents can add children."));
+        }
+
+        // Initialize childrenIds if null
+        if (parent.getChildrenIds() == null) {
+            parent.setChildrenIds(new ArrayList<>());
+        }
+
+        // Check if username or email already exists
+        if (userRepository.existsByUsername(request.username())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Username is already taken"));
+        }
+        if (userRepository.existsByEmail(request.email())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is already in use"));
+        }
+
+        // Create the child user
+        User child = new User();
+        child.setUsername(request.username());
+        child.setPassword(passwordEncoder.encode(request.password()));
+        child.setName(request.name());
+        child.setEmail(request.email());
+        child.setRole("STUDENT");
+        child.setParentId(parentId);
+        child.setActive(false);
+
+        // Save the child first to generate an ID
+        child = userRepository.save(child);
+
+        // Add child ID to parent's children list
+        parent.getChildrenIds().add(child.getId());
+        userRepository.save(parent);
+
+        return ResponseEntity.ok(Map.of("message", "Child added successfully"));
+    }
+
+    public ResponseEntity<?> getChildren(String parentId) {
+        User parent = findUserById(parentId);
+        List<Map<String, String>> children = parent.getChildrenIds().stream()
+                .map(this::findUserById)
+                .map(child -> Map.of("id", child.getId(), "name", child.getName()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(children);
     }
 
     public ResponseEntity<?> authenticateUser(LoginRequest request) {
@@ -83,8 +133,13 @@ public class UserService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
 
+        User user = userRepository.findByUsername(request.username())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         Map<String, String> response = new HashMap<>();
         response.put("token", jwt);
+        response.put("userId", user.getId());
+        response.put("role", user.getRole());
         return ResponseEntity.ok(response);
     }
 

@@ -1,6 +1,7 @@
 package com.example.recyclingAppBackend.controller;
 
 import com.example.recyclingAppBackend.dto.UpdateProgressRequest;
+import com.example.recyclingAppBackend.model.User;
 import com.example.recyclingAppBackend.model.UserProgress;
 import com.example.recyclingAppBackend.service.UserProgressService;
 import com.example.recyclingAppBackend.service.UserService;
@@ -40,5 +41,19 @@ public class UserProgressController {
     public ResponseEntity<List<UserProgress>> getMyProgress(Principal principal) {
         String userId = userService.getUserIdFromPrincipal(principal);
         return ResponseEntity.ok(userProgressService.getProgressForUser(userId));
+    }
+
+    @GetMapping("/child/{childId}")
+    @PreAuthorize("hasRole('PARENT')")
+    public ResponseEntity<List<UserProgress>> getChildProgress(@PathVariable String childId, Principal principal) {
+        String parentId = userService.getUserIdFromPrincipal(principal);
+        User child = userService.findUserById(childId);
+
+        // Check if the child belongs to the authenticated parent
+        if (child.getParentId() == null || !child.getParentId().equals(parentId)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(userProgressService.getProgressForUser(childId));
     }
 }

@@ -33,29 +33,17 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/parent/**").hasRole("PARENT")
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**").permitAll()
-
                         .requestMatchers(HttpMethod.GET, "/api/stories/**", "/api/badges/**", "/api/items/**").permitAll()
-                        .requestMatchers("/api/categories/view").permitAll() // Changed to permitAll to match design
-
-                        // --- Role-Specific Endpoints ---
-                        // Student-specific progress tracking
-                        .requestMatchers("/api/progress/**").hasRole("STUDENT")
-
-                        // Admin endpoints for content management
+                        .requestMatchers("/api/categories/view").permitAll()
+                        .requestMatchers("/api/progress/me", "/api/progress/start/**", "/api/progress/update").hasRole("STUDENT")
+                        .requestMatchers("/api/progress/child/**").hasRole("PARENT") // Add this line
                         .requestMatchers("/api/categories/**", "/api/stories/**", "/api/badges/**", "/api/items/**").hasRole("ADMIN")
-
-                        // Teacher-specific endpoints
                         .requestMatchers("/api/materials/**").hasRole("TEACHER")
-
-                        // --- General Authenticated Endpoints ---
                         .requestMatchers("/api/paths/**").authenticated()
-
-                        // Profile endpoints for any logged-in user
                         .requestMatchers("/api/profile/**").authenticated()
-
-                        // Fallback for any other request
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

@@ -20,6 +20,8 @@ public class StoryService {
         story.setTitle(request.getTitle());
         story.setDescription(request.getDescription());
         story.setNumberOfStages(request.getNumberOfStages());
+        story.setLink(request.getLink());
+        story.setImage(request.getImage());
         story.setActive(true); // Active by default
         return storyRepository.save(story);
     }
@@ -38,6 +40,8 @@ public class StoryService {
         existingStory.setTitle(request.getTitle());
         existingStory.setDescription(request.getDescription());
         existingStory.setNumberOfStages(request.getNumberOfStages());
+        existingStory.setLink(request.getLink());
+        existingStory.setId(request.getImage());
         return storyRepository.save(existingStory);
     }
 
