@@ -22,6 +22,11 @@ public class UserProgressService {
     @Autowired
     private StoryRepository storyRepository;
 
+    public Story getStoryById(String id) {
+        return storyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Story not found with id: " + id));
+    }
+
     public UserProgress startStory(String userId, String storyId) {
         Optional<UserProgress> existingProgress = userProgressRepository.findByUserIdAndStoryId(userId, storyId);
         if (existingProgress.isPresent()) {
@@ -31,12 +36,18 @@ public class UserProgressService {
         storyRepository.findById(storyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cannot start progress. Story not found with id: " + storyId));
 
+        Story story = getStoryById(storyId);
         UserProgress newProgress = new UserProgress();
         newProgress.setUserId(userId);
         newProgress.setStoryId(storyId);
         newProgress.setCurrentStage(1);
         newProgress.setStatus(UserProgress.ProgressStatus.IN_PROGRESS);
         newProgress.setLastPlayed(LocalDateTime.now());
+
+        newProgress.setMetal(story.getMetal());
+        newProgress.setGlass(story.getGlass());
+        newProgress.setPlastic(story.getPlastic());
+        newProgress.setOrganic(story.getOrganic());
 
         return userProgressRepository.save(newProgress);
     }

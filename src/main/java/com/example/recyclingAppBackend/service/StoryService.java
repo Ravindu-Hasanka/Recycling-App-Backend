@@ -22,7 +22,13 @@ public class StoryService {
         story.setNumberOfStages(request.getNumberOfStages());
         story.setLink(request.getLink());
         story.setImage(request.getImage());
-        story.setActive(true); // Active by default
+
+        story.setMetal(request.getMetal());
+        story.setGlass(request.getGlass());
+        story.setPlastic(request.getPlastic());
+        story.setOrganic(request.getOrganic());
+
+        story.setActive(true);
         return storyRepository.save(story);
     }
 

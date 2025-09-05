@@ -9,4 +9,9 @@ public class CreateStoryRequest {
     private int numberOfStages;
     private String link;
     private String image;
+
+    private int plastic;
+    private int glass;
+    private int organic;
+    private int metal;
 }
