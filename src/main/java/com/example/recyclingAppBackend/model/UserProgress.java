@@ -26,6 +26,11 @@ public class UserProgress {
     private ProgressStatus status;
     private LocalDateTime lastPlayed;
 
+    private int plastic;
+    private int glass;
+    private int organic;
+    private int metal;
+
     public enum ProgressStatus {
         NOT_STARTED,
         IN_PROGRESS,

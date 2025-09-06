@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Document(collection = "users")
@@ -25,6 +27,7 @@ public class User {
     private String parentId;
     private boolean isActive;
     private AccessibilityPrefs accessibilityPrefs;
+    private List<String> childrenIds = new ArrayList<>();
 
     @Data
     public static class AccessibilityPrefs {

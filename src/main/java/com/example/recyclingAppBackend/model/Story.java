@@ -11,6 +11,13 @@ public class Story {
     private String id;
     private String title;
     private String description;
+    private String link;
+    private String image;
     private int numberOfStages;
     private boolean isActive;
+
+    private int plastic = 0;
+    private int glass = 0;
+    private int organic = 0;
+    private int metal = 0;
 }
