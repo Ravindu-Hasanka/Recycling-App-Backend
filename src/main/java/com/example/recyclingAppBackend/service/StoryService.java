@@ -57,4 +57,9 @@ public class StoryService {
         }
         storyRepository.deleteById(id);
     }
+
+    public Story getStoryByTitle(String title) {
+        return storyRepository.findByTitle(title)
+                .orElseThrow(() -> new ResourceNotFoundException("Story not found with title: " + title));
+    }
 }

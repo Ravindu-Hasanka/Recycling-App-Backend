@@ -40,4 +40,10 @@ public class StoryController {
         storyService.deleteStory(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/get-story/{title}")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<Story> getStory(@PathVariable String title) {
+        return ResponseEntity.ok(storyService.getStoryByTitle(title));
+    }
 }
