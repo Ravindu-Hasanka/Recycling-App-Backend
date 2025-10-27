@@ -4,8 +4,12 @@ import com.example.recyclingAppBackend.dto.UpdateProgressRequest;
 import com.example.recyclingAppBackend.exception.ResourceNotFoundException;
 import com.example.recyclingAppBackend.model.Story;
 import com.example.recyclingAppBackend.model.UserProgress;
+import com.example.recyclingAppBackend.model.StudentProfile;
+import com.example.recyclingAppBackend.model.QuizProgress;
+import com.example.recyclingAppBackend.model.QuizDay;
 import com.example.recyclingAppBackend.repository.StoryRepository;
 import com.example.recyclingAppBackend.repository.UserProgressRepository;
+import com.example.recyclingAppBackend.repository.StudentProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +26,9 @@ public class UserProgressService {
     @Autowired
     private StoryRepository storyRepository;
 
+    @Autowired
+    private StudentProfileRepository studentProfileRepository;
+
     public Story getStoryById(String id) {
         return storyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Story not found with id: " + id));
@@ -30,7 +37,10 @@ public class UserProgressService {
     public UserProgress startStory(String userId, String storyId) {
         Optional<UserProgress> existingProgress = userProgressRepository.findByUserIdAndStoryId(userId, storyId);
         if (existingProgress.isPresent()) {
-            return existingProgress.get();
+            UserProgress progress = existingProgress.get();
+            // hydrate quiz scores before returning
+            applyCourseScores(userId, progress);
+            return progress;
         }
 
         storyRepository.findById(storyId)
@@ -49,7 +59,12 @@ public class UserProgressService {
         newProgress.setPlastic(story.getPlastic());
         newProgress.setOrganic(story.getOrganic());
 
-        return userProgressRepository.save(newProgress);
+        UserProgress saved = userProgressRepository.save(newProgress);
+
+        // hydrate with day1/day2/day3 scores from StudentProfile
+        applyCourseScores(userId, saved);
+
+        return saved;
     }
 
     public UserProgress updateProgress(String userId, UpdateProgressRequest request) {
@@ -68,10 +83,72 @@ public class UserProgressService {
             progress.setStatus(UserProgress.ProgressStatus.COMPLETED);
         }
 
-        return userProgressRepository.save(progress);
+        UserProgress saved = userProgressRepository.save(progress);
+
+        // hydrate quiz scores from StudentProfile before returning
+        applyCourseScores(userId, saved);
+
+        return saved;
     }
 
     public List<UserProgress> getProgressForUser(String userId) {
-        return userProgressRepository.findByUserId(userId);
+        List<UserProgress> list = userProgressRepository.findByUserId(userId);
+
+        // hydrate each item so parent /child/{childId} (and /me) sees quiz scores
+        for (UserProgress p : list) {
+            applyCourseScores(userId, p);
+        }
+
+        return list;
+    }
+
+    /**
+     * Attach day1/day2/day3 quiz scores from StudentProfile to the given UserProgress.
+     *
+     * Why we do the two-step lookup:
+     * - Sometimes the "userId" that gets passed in is the child's DB _id (like "6804...").
+     * - Sometimes progress.getUserId() may be a different identifier (ex: username or older id format).
+     *
+     * We'll try both so we don't silently fall back to zeros.
+     */
+    private void applyCourseScores(String requestedUserId, UserProgress progress) {
+        // 1. Try lookup by the ID the controller/service is using right now
+        Optional<StudentProfile> profileOpt = studentProfileRepository.findByUserId(requestedUserId);
+
+        // 2. Fallback: try whatever is stored on the progress row itself
+        if (profileOpt.isEmpty() && progress.getUserId() != null) {
+            profileOpt = studentProfileRepository.findByUserId(progress.getUserId());
+        }
+
+        if (profileOpt.isEmpty()) {
+            // No profile at all -> default zeros
+            progress.setDay1Score(0);
+            progress.setDay2Score(0);
+            progress.setDay3Score(0);
+            return;
+        }
+
+        StudentProfile profile = profileOpt.get();
+        QuizProgress qp = profile.getQuizProgress();
+        if (qp == null) {
+            progress.setDay1Score(0);
+            progress.setDay2Score(0);
+            progress.setDay3Score(0);
+            return;
+        }
+
+        QuizDay day1 = qp.getDay1();
+        QuizDay day2 = qp.getDay2();
+        QuizDay day3 = qp.getDay3();
+
+        progress.setDay1Score(extractScore(day1));
+        progress.setDay2Score(extractScore(day2));
+        progress.setDay3Score(extractScore(day3));
+    }
+
+    private Integer extractScore(QuizDay d) {
+        if (d == null) return 0;
+        if (d.getScore() == null) return 0;
+        return d.getScore();
     }
 }

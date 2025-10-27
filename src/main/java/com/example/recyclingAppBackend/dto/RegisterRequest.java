@@ -8,5 +8,10 @@ public record RegisterRequest(
         @NotBlank String name,
         @NotBlank @Email String email,
         @NotBlank String role,
+        @NotNull(message = "Age is required")
+        @Min(value = 1, message = "Age must be at least 1")
+        @Max(value = 120, message = "Age cannot exceed 120")
+        Integer age,
+
         String parentId
 ) {}

@@ -55,6 +55,7 @@ public class UserService {
         user.setName(request.name());
         user.setEmail(request.email());
         user.setRole(request.role());
+        user.setAge(request.age());
 
         if (request.role().equals("STUDENT")) {
             if (request.parentId() == null || request.parentId().isBlank()) {
@@ -106,6 +107,7 @@ public class UserService {
         child.setRole("STUDENT");
         child.setParentId(parentId);
         child.setActive(false);
+        child.setAge(request.age());
 
         // Save the child first to generate an ID
         child = userRepository.save(child);

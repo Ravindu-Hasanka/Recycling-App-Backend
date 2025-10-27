@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/stories/**", "/api/badges/**", "/api/items/**").permitAll()
                         .requestMatchers("/api/categories/view").permitAll()
                         .requestMatchers("/api/progress/me", "/api/progress/start/**", "/api/progress/update").hasRole("STUDENT")
+                        .requestMatchers("/api/student-course/**").hasRole("STUDENT")
                         .requestMatchers("/api/progress/child/**").hasRole("PARENT") // Add this line
                         .requestMatchers("/api/categories/**", "/api/stories/**", "/api/badges/**", "/api/items/**").hasRole("ADMIN")
                         .requestMatchers("/api/materials/**").hasRole("TEACHER")

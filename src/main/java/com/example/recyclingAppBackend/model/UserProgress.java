@@ -2,6 +2,7 @@ package com.example.recyclingAppBackend.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -36,4 +37,13 @@ public class UserProgress {
         IN_PROGRESS,
         COMPLETED
     }
+
+    @Transient
+    private Integer day1Score;
+
+    @Transient
+    private Integer day2Score;
+
+    @Transient
+    private Integer day3Score;
 }
