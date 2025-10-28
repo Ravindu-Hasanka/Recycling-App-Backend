@@ -5,7 +5,9 @@ import com.example.recyclingAppBackend.dto.FullLevelStatusResponse;
 import com.example.recyclingAppBackend.dto.UpdateDayScoreRequest;
 import com.example.recyclingAppBackend.dto.UpdateDayStatusRequest;
 import com.example.recyclingAppBackend.service.ProfileService;
+import com.example.recyclingAppBackend.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,9 @@ import java.security.Principal;
 public class StudentCourseController {
 
     private final ProfileService profileService;
+
+    @Autowired
+    private UserService userService;
 
     public StudentCourseController(ProfileService profileService) {
         this.profileService = profileService;
@@ -32,7 +37,8 @@ public class StudentCourseController {
                                                @Valid @RequestBody UpdateDayScoreRequest body,
                                                Principal principal) {
 
-        String userId = principal.getName(); // internal userId, not username
+//        String userId = principal.getName();
+        String userId = userService.getUserIdFromPrincipal(principal);
         profileService.updateDayScore(userId, day, body.getScore());
         return ResponseEntity.ok().build();
     }
@@ -47,7 +53,8 @@ public class StudentCourseController {
                                                 @Valid @RequestBody UpdateDayStatusRequest body,
                                                 Principal principal) {
 
-        String userId = principal.getName();
+//        String userId = principal.getName();
+        String userId = userService.getUserIdFromPrincipal(principal);
         profileService.updateDayStatus(userId, day, body.getStatus());
         return ResponseEntity.ok().build();
     }
@@ -61,7 +68,8 @@ public class StudentCourseController {
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<LevelInfoResponse> getLevelInfo(Principal principal) {
 
-        String userId = principal.getName();
+//        String userId = principal.getName();
+        String userId = userService.getUserIdFromPrincipal(principal);
         LevelInfoResponse resp = profileService.getLevelInfo(userId);
         return ResponseEntity.ok(resp);
     }
@@ -98,7 +106,8 @@ public class StudentCourseController {
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<FullLevelStatusResponse> getFullLevelStatus(Principal principal) {
 
-        String userId = principal.getName();
+//        String userId = principal.getName();
+        String userId = userService.getUserIdFromPrincipal(principal);
         FullLevelStatusResponse resp = profileService.getFullLevelStatus(userId);
         return ResponseEntity.ok(resp);
     }

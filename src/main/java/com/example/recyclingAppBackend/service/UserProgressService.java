@@ -2,20 +2,15 @@ package com.example.recyclingAppBackend.service;
 
 import com.example.recyclingAppBackend.dto.UpdateProgressRequest;
 import com.example.recyclingAppBackend.exception.ResourceNotFoundException;
-import com.example.recyclingAppBackend.model.Story;
-import com.example.recyclingAppBackend.model.UserProgress;
-import com.example.recyclingAppBackend.model.StudentProfile;
-import com.example.recyclingAppBackend.model.QuizProgress;
-import com.example.recyclingAppBackend.model.QuizDay;
-import com.example.recyclingAppBackend.repository.StoryRepository;
-import com.example.recyclingAppBackend.repository.UserProgressRepository;
-import com.example.recyclingAppBackend.repository.StudentProfileRepository;
+import com.example.recyclingAppBackend.model.*;
+import com.example.recyclingAppBackend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
 
 @Service
 public class UserProgressService {
@@ -94,6 +89,34 @@ public class UserProgressService {
     public List<UserProgress> getProgressForUser(String userId) {
         List<UserProgress> list = userProgressRepository.findByUserId(userId);
 
+        if (list.isEmpty()) {
+            // ✅ Create a default initialized progress object
+            UserProgress defaultProgress = new UserProgress();
+            defaultProgress.setUserId(userId);
+            defaultProgress.setStoryId(null); // No specific story yet
+            defaultProgress.setCurrentStage(0);
+            defaultProgress.setStatus(UserProgress.ProgressStatus.NOT_STARTED);
+            defaultProgress.setLastPlayed(null);
+
+            defaultProgress.setPlastic(0);
+            defaultProgress.setGlass(0);
+            defaultProgress.setOrganic(0);
+            defaultProgress.setMetal(0);
+
+            defaultProgress.setMarks(new ArrayList<>());
+            defaultProgress.setDay1Score(0);
+            defaultProgress.setDay2Score(0);
+            defaultProgress.setDay3Score(0);
+
+            // Hydrate with any quiz scores from StudentProfile
+            applyCourseScores(userId, defaultProgress);
+
+            // ✅ Optionally persist so it appears in DB next time
+            userProgressRepository.save(defaultProgress);
+
+            return List.of(defaultProgress);
+        }
+
         // hydrate each item so parent /child/{childId} (and /me) sees quiz scores
         for (UserProgress p : list) {
             applyCourseScores(userId, p);
@@ -112,6 +135,23 @@ public class UserProgressService {
      * We'll try both so we don't silently fall back to zeros.
      */
     private void applyCourseScores(String requestedUserId, UserProgress progress) {
+        if (progress == null) {
+            progress = new UserProgress();
+            progress.setUserId(requestedUserId);
+            progress.setDay1Score(0);
+            progress.setDay2Score(0);
+            progress.setDay3Score(0);
+            progress.setPlastic(0);
+            progress.setGlass(0);
+            progress.setOrganic(0);
+            progress.setMetal(0);
+            progress.setCurrentStage(0);
+            progress.setStatus(UserProgress.ProgressStatus.NOT_STARTED);
+            progress.setMarks(new ArrayList<>());
+            progress.setLastPlayed(null);
+            return;
+        }
+
         // 1. Try lookup by the ID the controller/service is using right now
         Optional<StudentProfile> profileOpt = studentProfileRepository.findByUserId(requestedUserId);
 

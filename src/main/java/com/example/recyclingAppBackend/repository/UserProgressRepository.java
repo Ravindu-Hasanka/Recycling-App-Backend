@@ -10,6 +10,7 @@ import java.util.Optional;
 @Repository
 public interface UserProgressRepository extends MongoRepository<UserProgress, String> {
     List<UserProgress> findByUserId(String userId);
+    List<UserProgress> findByStoryId(String storyId);
 
     Optional<UserProgress> findByUserIdAndStoryId(String userId, String storyId);
 }

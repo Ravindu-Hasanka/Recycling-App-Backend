@@ -141,7 +141,7 @@ public class ProfileService {
         Integer age = safeAge(sp);
 
 
-        Optional<User> userAge = userRepository.findByUsername(userId);
+        Optional<User> userAge = userRepository.findById(userId);
         User user = userAge.orElseThrow(() -> new IllegalStateException("User not found"));
         age = user.getAge();
         int ageGroup = mapAgeToGroup(age);
