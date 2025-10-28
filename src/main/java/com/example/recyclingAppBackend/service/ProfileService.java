@@ -236,10 +236,10 @@ public class ProfileService {
      * else => 1
      */
     private int mapAgeToOverallLevel(int age) {
-        if (age > 7 && age < 10) {
+        if (age >= 9 && age <= 10) {
             return 3;
         }
-        if (age > 3 && age < 7) {
+        if (age >= 7 && age <= 8) {
             return 2;
         }
         return 1;
