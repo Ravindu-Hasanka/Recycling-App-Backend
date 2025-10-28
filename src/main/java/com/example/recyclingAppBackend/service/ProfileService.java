@@ -236,13 +236,10 @@ public class ProfileService {
      * else => 1
      */
     private int mapAgeToOverallLevel(int age) {
-        if (age >= 9 && age <= 10) {
-            return 3;
-        }
-        if (age >= 7 && age <= 8) {
-            return 2;
-        }
-        return 1;
+        if (age >= 5 && age <= 6) return 1;
+        if (age >= 7 && age <= 8) return 2;
+        if (age >= 9 && age <= 10) return 3;
+        return 0;
     }
 
     /**
@@ -270,9 +267,9 @@ public class ProfileService {
      * (this is the same logic you already approved earlier)
      */
     private int mapAgeToGroup(int age) {
-        if (age >= 1 && age < 3) return 1;
-        if (age >= 3 && age < 7) return 2;
-        if (age >= 7 && age < 10) return 3;
+        if (age >= 5 && age <= 6) return 1;
+        if (age >= 7 && age <= 8) return 2;
+        if (age >= 9 && age <= 10) return 3;
         return 0;
     }
 
